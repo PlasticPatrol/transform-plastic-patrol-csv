@@ -1,0 +1,24 @@
+{
+  "name": "transform-plastic-patrol-csv",
+  "version": "1.0.0",
+  "description": "A script to transform the data from the plastic patrol api link until a longer term solution has been implemented",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "transform-data": "node ./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/munroTom/transform-plastic-patrol-csv.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/munroTom/transform-plastic-patrol-csv/issues"
+  },
+  "homepage": "https://github.com/munroTom/transform-plastic-patrol-csv#readme",
+  "dependencies": {
+    "csv-writer": "^1.5.0",
+    "csvtojson": "^2.0.10"
+  }
+}
