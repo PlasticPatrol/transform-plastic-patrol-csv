@@ -8,6 +8,8 @@ const INPUT_FILE_PATH = `${__dirname}/data/${inputFileName || "input"}.csv`;
 const OUTPUT_FILE_PATH = `${__dirname}/data/${outputFileName || "output"}.csv`;
 
 async function reformatApiCsv() {
+  let photosWithoutOriginalUrl = 0;
+  let photosWithOriginalUrl = 0;
   const data = await csv({ flatKeys: true }).fromFile(INPUT_FILE_PATH);
 
   const outputData = [];
@@ -33,19 +35,19 @@ async function reformatApiCsv() {
     const {
       pieces: totalPieces,
       details,
-      originalUrl: removed,
+      originalUrl,
       ...others
     } = otherOutputFields;
-    //TODO: figure out wtf is happening
-    const originalUrl = String(inputRow.originalUrl);
+
+    const photoUrls = makePhotoUrls(others.id);
 
     if (Object.values(categories).length) {
       Object.values(categories).forEach(category => {
-        outputKeys = { totalPieces, originalUrl, ...others, ...category };
-        outputData.push({ totalPieces, ...others, ...category });
+        outputKeys = { totalPieces, ...others, ...category, ...photoUrls };
+        outputData.push({ totalPieces, ...others, ...category, ...photoUrls });
       });
     } else {
-      outputData.push({ totalPieces, ...others });
+      outputData.push({ totalPieces, ...others, ...photoUrls });
     }
 
     outputData[outputData.length - 1].originalUrl = originalUrl;
@@ -83,4 +85,15 @@ function convertToCSV(arrayOfDataObjects) {
   //, headers.join(",") + newLine);
 }
 
+function makePhotoUrls(id) {
+  const thumbnailUrl = `https://storage.googleapis.com/plastic-patrol-fd3b3.appspot.com/photos/${id}/thumbnail.jpg`;
+  const orignalPhotoUrl = `https://storage.googleapis.com/plastic-patrol-fd3b3.appspot.com/photos/${id}/original.jpg`;
+  const photoSize1024Url = ` https://storage.googleapis.com/plastic-patrol-fd3b3.appspot.com/photos/${id}/1024.jpg`;
+
+  return {
+    thumbnailUrl,
+    orignalPhotoUrl,
+    photoSize1024Url
+  };
+}
 reformatApiCsv();
