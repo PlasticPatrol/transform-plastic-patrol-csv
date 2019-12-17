@@ -19,6 +19,7 @@
   "homepage": "https://github.com/munroTom/transform-plastic-patrol-csv#readme",
   "dependencies": {
     "csv-writer": "^1.5.0",
-    "csvtojson": "^2.0.10"
+    "csvtojson": "^2.0.10",
+    "node-fetch": "^2.6.0"
   }
 }

@@ -1,16 +1,23 @@
 const csv = require("csvtojson");
 const { createObjectCsvWriter } = require("csv-writer");
+const fetch = require("node-fetch");
 
-const inputFileName = process.argv[2];
-const outputFileName = process.argv[3];
+const outputFileName = process.argv[2];
 
-const INPUT_FILE_PATH = `${__dirname}/data/${inputFileName || "input"}.csv`;
 const OUTPUT_FILE_PATH = `${__dirname}/data/${outputFileName || "output"}.csv`;
+const API_LINK = "https://api.plasticpatrol.co.uk/photos.csv";
 
 async function reformatApiCsv() {
-  let photosWithoutOriginalUrl = 0;
-  let photosWithOriginalUrl = 0;
-  const data = await csv({ flatKeys: true }).fromFile(INPUT_FILE_PATH);
+  console.log("fetching photos");
+  const photosFromServer = await fetch(API_LINK).then(res => {
+    console.log("parsing response");
+
+    return res.text();
+  });
+
+  console.log("transforming data");
+
+  const data = await csv({ flatKeys: true }).fromString(photosFromServer);
 
   const outputData = [];
   let outputKeys;
@@ -96,4 +103,4 @@ function makePhotoUrls(id) {
     photoSize1024Url
   };
 }
-reformatApiCsv();
+reformatApiCsv().catch(err => console.error(err));
