@@ -48,16 +48,17 @@ async function reformatApiCsv() {
 
     const photoUrls = makePhotoUrls(others.id);
 
+    const commonFields = { totalPieces, ...others, ...photoUrls };
+
     if (Object.values(categories).length) {
       Object.values(categories).forEach(category => {
-        outputKeys = { totalPieces, ...others, ...category, ...photoUrls };
-        outputData.push({ totalPieces, ...others, ...category, ...photoUrls });
+        const categoryFields = { ...commonFields, ...category };
+        outputKeys = categoryFields;
+        outputData.push(categoryFields);
       });
     } else {
-      outputData.push({ totalPieces, ...others, ...photoUrls });
+      outputData.push(commonFields);
     }
-
-    outputData[outputData.length - 1].originalUrl = originalUrl;
   });
 
   const outputSchema = Object.keys(outputKeys).map(val => ({
@@ -89,7 +90,6 @@ function convertToCSV(arrayOfDataObjects) {
     csv += newLine;
     return csv;
   });
-  //, headers.join(",") + newLine);
 }
 
 function makePhotoUrls(id) {
