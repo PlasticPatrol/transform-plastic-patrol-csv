@@ -4,64 +4,67 @@ const fetch = require("node-fetch");
 
 const outputFileName = process.argv[2];
 
-const OUTPUT_FILE_PATH = `${__dirname}/data/${outputFileName || "output"}.csv`;
-const API_LINK = "https://api.plasticpatrol.co.uk/photos.csv";
+const OUTPUT_FILE_PATH = `${__dirname}/${outputFileName || "output"}.csv`;
+const API_LINK = "https://api.plasticpatrol.co.uk/photos.json";
 
 async function reformatApiCsv() {
   console.log("fetching photos");
-  const photosFromServer = await fetch(API_LINK).then(res => {
+  const response = await fetch(API_LINK).then((res) => {
     console.log("parsing response");
 
     return res.text();
   });
-
-  console.log("transforming data");
-
-  const data = await csv({ flatKeys: true }).fromString(photosFromServer);
-
+  const { photos } = JSON.parse(response);
   const outputData = [];
-  let outputKeys;
+  const outputKeys = {};
 
-  data.forEach((inputRow, index) => {
-    const otherOutputFields = {};
-    const categories = {};
-    Object.keys(inputRow).forEach(key => {
-      if (key.includes("categories")) {
-        if (inputRow[key]) {
-          const { catNum, catNumInfo } = getCategoryKeyInfo(key);
-          if (categories[catNum]) {
-            categories[catNum][catNumInfo] = inputRow[key];
-          } else {
-            categories[catNum] = { [catNumInfo]: inputRow[key] };
-          }
-        }
-      } else {
-        otherOutputFields[key] = inputRow[key];
-      }
-    });
+  Object.keys(photos).forEach((id) => {
+    const photo = photos[id];
     const {
+      categories = [],
       pieces: totalPieces,
       details,
       originalUrl,
+      location: { _latitude: latitude, _longitude: longitude },
       ...others
-    } = otherOutputFields;
+    } = photo;
 
-    const photoUrls = makePhotoUrls(others.id);
+    const photoUrls = makePhotoUrls(id);
 
-    const commonFields = { totalPieces, ...others, ...photoUrls };
+    const commonFields = {
+      totalPieces,
+      latitude,
+      longitude,
+      ...others,
+      ...photoUrls
+    };
+
+    Object.keys(commonFields).forEach((key) => {
+      outputKeys[key] = key;
+    });
 
     if (Object.values(categories).length) {
-      Object.values(categories).forEach(category => {
+      categories.forEach((category) => {
+        if (category.leafkey) {
+          const splat = { ...category };
+          category.leafKey = splat.leafkey;
+          delete category.leafkey;
+          console.log(category);
+        }
+
         const categoryFields = { ...commonFields, ...category };
-        outputKeys = categoryFields;
         outputData.push(categoryFields);
+
+        Object.keys(categoryFields).forEach((key) => {
+          outputKeys[key] = key;
+        });
       });
     } else {
       outputData.push(commonFields);
     }
   });
 
-  const outputSchema = Object.keys(outputKeys).map(val => ({
+  const outputSchema = Object.keys(outputKeys).map((val) => ({
     id: val,
     title: val
   }));
@@ -73,14 +76,6 @@ async function reformatApiCsv() {
 
   csvWriter.writeRecords(outputData).then(console.log("done"));
 }
-
-const getCategoryKeyInfo = key => {
-  const splitKey = key.split(".");
-  const catNum = splitKey[1];
-  const catNumInfo = splitKey[2];
-
-  return { catNum, catNumInfo };
-};
 
 function convertToCSV(arrayOfDataObjects) {
   const newLine = "\r\n";
@@ -103,4 +98,4 @@ function makePhotoUrls(id) {
     photoSize1024Url
   };
 }
-reformatApiCsv().catch(err => console.error(err));
+reformatApiCsv().catch((err) => console.error(err));

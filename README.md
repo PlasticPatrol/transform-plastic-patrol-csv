@@ -1,6 +1,11 @@
 ## Data transform script
 
 This script will fetch the latest copy of the data available on the plastic patrol api link and perform a couple of small transformations.
+
+Transformations:
+
+- Flatten the data by categories
+
 Additional output fields given:
 
 - thumbnailUrl, url of thumbnail size copy of the image
