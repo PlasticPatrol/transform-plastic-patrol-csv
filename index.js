@@ -2,6 +2,8 @@ const csv = require("csvtojson");
 const { createObjectCsvWriter } = require("csv-writer");
 const fetch = require("node-fetch");
 
+const categoriesJSON = require("./categories.json");
+
 const outputFileName = process.argv[2];
 
 const OUTPUT_FILE_PATH = `${__dirname}/${outputFileName || "output"}.csv`;
@@ -45,11 +47,13 @@ async function reformatApiCsv() {
 
     if (Object.values(categories).length) {
       categories.forEach((category) => {
-        if (category.leafkey) {
-          const splat = { ...category };
-          category.leafKey = splat.leafkey;
+        const { leafKey, leafkey, label } = category;
+        const lk = leafKey || leafkey;
+        if (lk && !label) {
+          const label = (categoriesJSON[lk] || {}).label || "UNKNOWN_LEAF_KEY";
+          category.label = label;
           delete category.leafkey;
-          console.log(category);
+          delete category.leafKey;
         }
 
         const categoryFields = { ...commonFields, ...category };
@@ -63,6 +67,9 @@ async function reformatApiCsv() {
       outputData.push(commonFields);
     }
   });
+
+  delete outputKeys.leafkey;
+  delete outputKeys.leafKey;
 
   const outputSchema = Object.keys(outputKeys).map((val) => ({
     id: val,

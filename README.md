@@ -4,7 +4,8 @@ This script will fetch the latest copy of the data available on the plastic patr
 
 Transformations:
 
-- Flatten the data by categories
+- Flatten the data so each category corresponds to a row
+- Gets the category leafKey from the list maintained in the app
 
 Additional output fields given:
 
